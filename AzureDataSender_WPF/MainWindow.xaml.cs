@@ -56,6 +56,11 @@ namespace AzureDataSender_WPF
         private static string dstEnd = "Nov Sun>=1"; // 1st Sunday Nov (US 2013)
         */
 
+        int actTimeDiff = 0;            // Holds timeOffset between local time and UTC
+
+        string TimeOffsetUTCString = "+000";     // Holds timeOffset between local time and UTC as string
+
+
         DataContainer dataContainer = new DataContainer(new TimeSpan(0, 15, 0));
         DispatcherTimer getSensorDataTimer;
         DispatcherTimer writeAnalogToCloudTimer;
@@ -86,6 +91,9 @@ namespace AzureDataSender_WPF
             OnOffSensor_02.digitalOnOffSensorSend += OnOffSensor_02_digitalOnOffSensorSend;
             OnOffSensor_03.digitalOnOffSensorSend += OnOffSensor_03_digitalOnOffSensorSend;
             OnOffSensor_04.digitalOnOffSensorSend += OnOffSensor_04_digitalOnOffSensorSend;
+           
+            actTimeDiff = Convert.ToInt32(new DateTimeOffset(DateTime.Now).Offset.TotalMinutes);
+            TimeOffsetUTCString = actTimeDiff < 0 ? actTimeDiff.ToString("D3") : "+" + actTimeDiff.ToString("D3");
 
         }
         #endregion
@@ -272,7 +280,7 @@ namespace AzureDataSender_WPF
 
             string[] propertyNames = new string[4] { Analog_1.Text, Analog_2.Text, Analog_3.Text, Analog_4.Text };
             Dictionary<string, EntityProperty> entityDictionary = new Dictionary<string, EntityProperty>();
-            string sampleTime = actDate.Month.ToString("D2") + "/" + actDate.Day.ToString("D2") + "/" + actDate.Year + " " + actDate.Hour.ToString("D2") + ":" + actDate.Minute.ToString("D2") + ":" + actDate.Second.ToString("D2");
+            string sampleTime = actDate.Month.ToString("D2") + "/" + actDate.Day.ToString("D2") + "/" + actDate.Year + " " + actDate.Hour.ToString("D2") + ":" + actDate.Minute.ToString("D2") + ":" + actDate.Second.ToString("D2") + " " + TimeOffsetUTCString;
             //string sampleTime = actDate.ToString("MM/dd/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
 
             entityDictionary.Add("SampleTime", EntityProperty.GeneratePropertyForString(sampleTime));
@@ -389,9 +397,11 @@ namespace AzureDataSender_WPF
             string rowKey = (10000 - actDate.Year).ToString("D4") + (12 - actDate.Month).ToString("D2") + (31 - actDate.Day).ToString("D2")
                        + (23 - actDate.Hour).ToString("D2") + (59 - actDate.Minute).ToString("D2") + (59 - actDate.Second).ToString("D2");
 
+            
+            
 
             //string sampleTime = actDate.Month.ToString("D2") + "/" + actDate.Day.ToString("D2") + "/" + actDate.Year + " " + actDate.Hour.ToString("D2") + ":" + actDate.Minute.ToString("D2") + ":" + actDate.Second.ToString("D2");
-            string sampleTime = actDate.ToString("MM/dd/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+            string sampleTime = actDate.ToString("MM/dd/yyyy HH:mm:ss", CultureInfo.InvariantCulture) + " " + TimeOffsetUTCString;
             TimeSpan tflSend = e.TimeFromLastSend;
             string timeFromLastSendAsString = tflSend.Days.ToString("D3") + "-" + tflSend.Hours.ToString("D2") + ":" + tflSend.Minutes.ToString("D2") + ":" + tflSend.Seconds.ToString("D2");
 
